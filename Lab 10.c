@@ -5,24 +5,19 @@
 #define ALPHABET_SIZE 26
 
 struct Trie {
-    struct TrieNode *root;
-};
-
-struct TrieNode {
-    struct TrieNode *children[ALPHABET_SIZE];
+    struct Trie *children[ALPHABET_SIZE];
     int count;
 };
 
-
 // Inserts the word to the trie structure
 void insert(struct Trie *pTrie, char *word) {
-    struct TrieNode *current = pTrie->root;
+    struct Trie *current = pTrie;
     int len = strlen(word);
 
     for (int i = 0; i < len; i++) {
         int index = word[i] - 'a';
         if (!current->children[index]) {
-            current->children[index] = (struct TrieNode *)malloc(sizeof(struct TrieNode));
+            current->children[index] = (struct Trie *)malloc(sizeof(struct Trie));
             if (!current->children[index]) {
                 // Failed to allocate memory for the new node
                 printf("Memory allocation error\n");
@@ -42,7 +37,7 @@ void insert(struct Trie *pTrie, char *word) {
 
 // Computes the number of occurrences of the word
 int numberOfOccurrences(struct Trie *pTrie, char *word) {
-    struct TrieNode *current = pTrie->root;
+    struct Trie *current = pTrie;
     int len = strlen(word);
 
     for (int i = 0; i < len; i++) {
@@ -56,40 +51,24 @@ int numberOfOccurrences(struct Trie *pTrie, char *word) {
 }
 
 // Deallocate the trie structure
-void deallocateNodes(struct TrieNode *node) {
-    if (!node) return;
-    for (int i = 0; i < ALPHABET_SIZE; i++) {
-        deallocateNodes(node->children[i]);
-    }
-    free(node);
-}
-
-// Deallocate the trie structure
-struct Trie *deallocateTrie(struct Trie *pTrie) {
+void deallocateTrie(struct Trie *pTrie) {
     if (!pTrie) {
-        return NULL;
+        return;
     }
 
-    deallocateNodes(pTrie->root);
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        deallocateTrie(pTrie->children[i]);
+    }
     free(pTrie);
-    return NULL;
 }
 
 // Initializes a trie structure
 struct Trie *createTrie() {
     struct Trie *pTrie = (struct Trie *)malloc(sizeof(struct Trie));
     if (pTrie) {
-        // Create root node
-        pTrie->root = (struct TrieNode *)malloc(sizeof(struct TrieNode));
-        if (pTrie->root) {
-            pTrie->root->count = 0;
-            for (int i = 0; i < ALPHABET_SIZE; i++) {
-                pTrie->root->children[i] = NULL;
-            }
-        } else {
-            // Failed to allocate memory for root node
-            free(pTrie);
-            pTrie = NULL;
+        pTrie->count = 0;
+        for (int i = 0; i < ALPHABET_SIZE; i++) {
+            pTrie->children[i] = NULL;
         }
     }
     return pTrie;
@@ -141,9 +120,6 @@ int main(void) {
         printf("\t%s : %d\n", pWords[i], numberOfOccurrences(pTrie, pWords[i]));
     }
 
-    pTrie = deallocateTrie(pTrie);
-    if (pTrie != NULL) {
-        printf("There is an error in this program\n");
-    }
+    deallocateTrie(pTrie);
     return 0;
 }
